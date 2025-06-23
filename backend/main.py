@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
+from retrieval import retrieval_service
 
 # Configure logging
 logging.basicConfig(
@@ -16,7 +17,11 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan handler"""
     logger.info("Starting AI Knowledge Assistant API...")
-    # Initialize services here
+    # Initialize retrieval service
+    try:
+        retrieval_service.initialize()
+    except Exception as e:
+        logger.warning(f"Could not initialize retrieval service: {e}")
     yield
     logger.info("Shutting down AI Knowledge Assistant API...")
 
@@ -62,7 +67,7 @@ async def status():
         "status": "operational",
         "services": {
             "api": "running",
-            "vector_store": "pending",
+            "vector_store": "ready" if retrieval_service.is_ready() else "not_ready",
             "agents": "pending"
         }
     }

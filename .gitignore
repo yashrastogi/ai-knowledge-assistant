@@ -68,6 +68,6 @@ logs/
 # Docker
 docker-compose.override.yml
 
-# Legacy
-GEMINI.md
-.github/
+
+CHANGELOG.md
+README.md
