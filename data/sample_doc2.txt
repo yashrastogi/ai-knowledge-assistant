@@ -1,0 +1,61 @@
+# Enterprise IT Service Management Guide
+
+## Overview
+This guide covers best practices for IT Service Management (ITSM) in enterprise environments.
+
+## CMDB (Configuration Management Database)
+
+The CMDB is a central repository that stores information about:
+- Hardware assets (servers, network devices, workstations)
+- Software assets (applications, licenses)
+- Services and their dependencies
+- Relationships between configuration items (CIs)
+
+### Key CMDB Attributes
+- CI ID: Unique identifier
+- CI Type: Server, Application, Network Device, etc.
+- Status: Active, Inactive, Maintenance
+- Owner: Business unit or team
+- Location: Data center, office, cloud region
+- Dependencies: Related CIs
+
+## Incident Management
+
+### Incident Priority Matrix
+| Impact | Urgency | Priority |
+|--------|---------|----------|
+| High   | High    | P1 - Critical |
+| High   | Medium  | P2 - High |
+| Medium | High    | P2 - High |
+| Medium | Medium  | P3 - Medium |
+| Low    | Low     | P4 - Low |
+
+### Incident Lifecycle
+1. Detection and Logging
+2. Categorization and Prioritization
+3. Investigation and Diagnosis
+4. Resolution and Recovery
+5. Closure and Documentation
+
+## Change Management
+
+All changes must go through:
+1. RFC (Request for Change) submission
+2. Impact assessment
+3. CAB (Change Advisory Board) review
+4. Implementation planning
+5. Post-implementation review
+
+## Service Level Agreements (SLAs)
+
+### Response Times
+- P1 Critical: 15 minutes
+- P2 High: 1 hour
+- P3 Medium: 4 hours
+- P4 Low: 24 hours
+
+### Resolution Times
+- P1 Critical: 4 hours
+- P2 High: 8 hours
+- P3 Medium: 48 hours
+- P4 Low: 5 business days
