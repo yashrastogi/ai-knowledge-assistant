@@ -30,7 +30,7 @@ pip install -r requirements.txt
 if [ ! -f ".env" ]; then
     echo "Creating .env file from template..."
     cp .env.example .env
-    echo "⚠️  Please edit backend/.env and add your OPENAI_API_KEY"
+    echo "⚠️  Please edit backend/.env and add your GOOGLE_API_KEY"
 fi
 
 cd ..
@@ -50,7 +50,7 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "Next steps:"
-echo "1. Edit backend/.env and add your OPENAI_API_KEY"
+echo "1. Edit backend/.env and add your GOOGLE_API_KEY"
 echo "2. Start backend: cd backend && source venv/bin/activate && python main.py"
 echo "3. Start frontend: cd frontend && npm run dev"
 echo ""

@@ -4,7 +4,7 @@ import logging
 from langchain.chains import RetrievalQA
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import Document
 from retrieval import retrieval_service
@@ -18,7 +18,7 @@ class RAGChain:
     
     def __init__(self):
         """Initialize RAG chain"""
-        self.llm: Optional[ChatOpenAI] = None
+        self.llm: Optional[ChatGoogleGenerativeAI] = None
         self.chain: Optional[Any] = None
         self._initialized = False
     
@@ -36,11 +36,11 @@ class RAGChain:
                 raise RuntimeError("Retrieval service not ready")
             
             # Initialize LLM
-            self.llm = ChatOpenAI(
-                openai_api_key=settings.openai_api_key,
-                model=settings.openai_model,
+            self.llm = ChatGoogleGenerativeAI(
+                model=settings.gemini_model,
+                google_api_key=settings.google_api_key,
                 temperature=0.7,
-                streaming=False
+                convert_system_message_to_human=True
             )
             
             # Create prompt template

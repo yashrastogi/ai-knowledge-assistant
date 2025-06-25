@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 import logging
 import pickle
 from langchain.schema import Document
-from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.vectorstores.base import VectorStore
 
@@ -16,20 +16,20 @@ class EmbeddingManager:
     
     def __init__(
         self,
-        openai_api_key: str,
-        embedding_model: str = "text-embedding-3-small",
+        google_api_key: str,
+        embedding_model: str = "models/embedding-001",
         vector_store_path: Optional[Path] = None
     ):
         """Initialize embedding manager
         
         Args:
-            openai_api_key: OpenAI API key
+            google_api_key: Google API key
             embedding_model: Name of embedding model
             vector_store_path: Path to save/load vector store
         """
-        self.embeddings = OpenAIEmbeddings(
-            openai_api_key=openai_api_key,
-            model=embedding_model
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model=embedding_model,
+            google_api_key=google_api_key
         )
         self.vector_store_path = vector_store_path
         self.vector_store: Optional[VectorStore] = None

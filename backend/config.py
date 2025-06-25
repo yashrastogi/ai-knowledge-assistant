@@ -6,10 +6,10 @@ from typing import Optional
 class Settings(BaseSettings):
     """Application settings"""
     
-    # OpenAI Configuration
-    openai_api_key: str = ""
-    openai_model: str = "gpt-4-turbo-preview"
-    embedding_model: str = "text-embedding-3-small"
+    # Google Gemini Configuration
+    google_api_key: str = ""
+    gemini_model: str = "gemini-pro"
+    embedding_model: str = "models/embedding-001"
     
     # Vector Store Configuration
     vector_store_type: str = "faiss"

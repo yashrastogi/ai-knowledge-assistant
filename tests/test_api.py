@@ -44,8 +44,8 @@ def test_status():
 
 
 @pytest.mark.skipif(
-    not os.getenv("OPENAI_API_KEY"),
-    reason="OPENAI_API_KEY not set"
+    not os.getenv("GOOGLE_API_KEY"),
+    reason="GOOGLE_API_KEY not set"
 )
 def test_query_endpoint():
     """Test query endpoint"""

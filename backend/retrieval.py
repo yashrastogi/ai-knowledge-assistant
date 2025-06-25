@@ -29,7 +29,7 @@ class RetrievalService:
         try:
             # Initialize embedding manager
             self.embedding_manager = EmbeddingManager(
-                openai_api_key=settings.openai_api_key,
+                google_api_key=settings.google_api_key,
                 embedding_model=settings.embedding_model,
                 vector_store_path=Path(settings.vector_store_path)
             )

@@ -30,9 +30,9 @@ def main():
     logger.info(f"Data directory: {data_dir}")
     logger.info(f"Vector store path: {vector_store_path}")
     
-    # Check OpenAI API key
-    if not settings.openai_api_key:
-        logger.error("OPENAI_API_KEY not set in environment")
+    # Check Google API key
+    if not settings.google_api_key:
+        logger.error("GOOGLE_API_KEY not set in environment")
         sys.exit(1)
     
     try:
@@ -58,7 +58,7 @@ def main():
         # Initialize embedding manager
         logger.info("Initializing embedding manager...")
         embedding_manager = EmbeddingManager(
-            openai_api_key=settings.openai_api_key,
+            google_api_key=settings.google_api_key,
             embedding_model=settings.embedding_model,
             vector_store_path=vector_store_path
         )
