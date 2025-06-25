@@ -67,7 +67,3 @@ logs/
 
 # Docker
 docker-compose.override.yml
-
-
-CHANGELOG.md
-README.md

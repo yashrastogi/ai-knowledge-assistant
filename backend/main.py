@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 from retrieval import retrieval_service
+from rag_chain import rag_chain
+from routes import router as query_router
 
 # Configure logging
 logging.basicConfig(
@@ -20,8 +22,14 @@ async def lifespan(app: FastAPI):
     # Initialize retrieval service
     try:
         retrieval_service.initialize()
+        if retrieval_service.is_ready():
+            # Initialize RAG chain
+            rag_chain.initialize()
+            logger.info("All services initialized successfully")
+        else:
+            logger.warning("Retrieval service not ready - run build_embeddings.py first")
     except Exception as e:
-        logger.warning(f"Could not initialize retrieval service: {e}")
+        logger.warning(f"Could not initialize services: {e}")
     yield
     logger.info("Shutting down AI Knowledge Assistant API...")
 
@@ -30,7 +38,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AI Knowledge Assistant",
     description="RAG-powered Q&A system with multi-agent workflow",
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan
 )
 
@@ -42,6 +50,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(query_router)
 
 
 @app.get("/")
@@ -68,6 +79,7 @@ async def status():
         "services": {
             "api": "running",
             "vector_store": "ready" if retrieval_service.is_ready() else "not_ready",
+            "rag_chain": "ready" if rag_chain.is_ready() else "not_ready",
             "agents": "pending"
         }
     }
