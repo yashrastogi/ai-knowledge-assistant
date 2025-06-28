@@ -67,3 +67,5 @@ logs/
 
 # Docker
 docker-compose.override.yml
+
+package-lock.json

@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, status
 from models import QueryRequest, QueryResponse, ErrorResponse
 from rag_chain import rag_chain
+from agents import multi_agent_orchestrator
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,9 @@ async def query(request: QueryRequest) -> QueryResponse:
     This endpoint processes natural language questions and returns answers
     based on the indexed knowledge base documents.
     
+    Set `use_multi_agent=True` to use the multi-agent workflow with
+    specialized retriever, synthesizer, and validator agents.
+    
     Args:
         request: Query request containing the question and parameters
         
@@ -33,41 +37,81 @@ async def query(request: QueryRequest) -> QueryResponse:
     Raises:
         HTTPException: If service is not ready or query fails
     """
-    logger.info(f"Received query: {request.question}")
-    
-    # Check if RAG chain is ready
-    if not rag_chain.is_ready():
-        logger.error("RAG chain not initialized")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="RAG service not ready. Please ensure vector store is initialized."
-        )
+    logger.info(f"Received query: {request.question} (multi-agent: {request.use_multi_agent})")
     
     try:
-        # Process query
-        result = rag_chain.query(
-            question=request.question,
-            k=request.k,
-            return_source_documents=request.return_sources
-        )
-        
-        if not result.get("success"):
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=result.get("error", "Unknown error occurred")
+        # Use multi-agent workflow if requested
+        if request.use_multi_agent:
+            # Check if multi-agent orchestrator is ready
+            if not multi_agent_orchestrator.is_ready():
+                logger.error("Multi-agent orchestrator not initialized")
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Multi-agent service not ready. Please ensure vector store is initialized."
+                )
+            
+            # Process with multi-agent workflow
+            result = multi_agent_orchestrator.process_query(
+                question=request.question,
+                k=request.k,
+                validate=request.validate_answer
             )
+            
+            if not result.get("success"):
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=result.get("error", "Unknown error occurred")
+                )
+            
+            # Convert to response model
+            response = QueryResponse(
+                answer=result["answer"],
+                question=result["question"],
+                success=result["success"],
+                source_documents=result.get("source_documents") if request.return_sources else None,
+                validation=result.get("validation"),
+                agent_workflow=result.get("agent_workflow"),
+                warning=result.get("warning"),
+                error=result.get("error")
+            )
+            
+            logger.info(f"Successfully processed query with multi-agent workflow: {request.question}")
+            return response
         
-        # Convert to response model
-        response = QueryResponse(
-            answer=result["answer"],
-            question=result["question"],
-            success=result["success"],
-            source_documents=result.get("source_documents"),
-            error=result.get("error")
-        )
-        
-        logger.info(f"Successfully processed query: {request.question}")
-        return response
+        # Use standard RAG chain
+        else:
+            # Check if RAG chain is ready
+            if not rag_chain.is_ready():
+                logger.error("RAG chain not initialized")
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="RAG service not ready. Please ensure vector store is initialized."
+                )
+            
+            # Process query
+            result = rag_chain.query(
+                question=request.question,
+                k=request.k,
+                return_source_documents=request.return_sources
+            )
+            
+            if not result.get("success"):
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=result.get("error", "Unknown error occurred")
+                )
+            
+            # Convert to response model
+            response = QueryResponse(
+                answer=result["answer"],
+                question=result["question"],
+                success=result["success"],
+                source_documents=result.get("source_documents"),
+                error=result.get("error")
+            )
+            
+            logger.info(f"Successfully processed query: {request.question}")
+            return response
         
     except HTTPException:
         raise

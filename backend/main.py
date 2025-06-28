@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 import logging
 from retrieval import retrieval_service
 from rag_chain import rag_chain
+from agents import multi_agent_orchestrator
 from routes import router as query_router
 
 # Configure logging
@@ -25,6 +26,8 @@ async def lifespan(app: FastAPI):
         if retrieval_service.is_ready():
             # Initialize RAG chain
             rag_chain.initialize()
+            # Initialize multi-agent orchestrator
+            multi_agent_orchestrator.initialize()
             logger.info("All services initialized successfully")
         else:
             logger.warning("Retrieval service not ready - run build_embeddings.py first")
@@ -38,7 +41,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AI Knowledge Assistant",
     description="RAG-powered Q&A system with multi-agent workflow",
-    version="0.2.0",
+    version="0.3.0",
     lifespan=lifespan
 )
 
@@ -80,7 +83,7 @@ async def status():
             "api": "running",
             "vector_store": "ready" if retrieval_service.is_ready() else "not_ready",
             "rag_chain": "ready" if rag_chain.is_ready() else "not_ready",
-            "agents": "pending"
+            "multi_agent": "ready" if multi_agent_orchestrator.is_ready() else "not_ready"
         }
     }
 

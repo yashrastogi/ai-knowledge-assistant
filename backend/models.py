@@ -8,6 +8,8 @@ class QueryRequest(BaseModel):
     question: str = Field(..., description="The question to ask", min_length=1)
     k: int = Field(default=4, description="Number of documents to retrieve", ge=1, le=20)
     return_sources: bool = Field(default=True, description="Whether to return source documents")
+    use_multi_agent: bool = Field(default=False, description="Use multi-agent workflow")
+    validate_answer: bool = Field(default=True, description="Validate answer quality (multi-agent only)")
     
     model_config = {
         "json_schema_extra": {
@@ -15,7 +17,9 @@ class QueryRequest(BaseModel):
                 {
                     "question": "What is RAG?",
                     "k": 4,
-                    "return_sources": True
+                    "return_sources": True,
+                    "use_multi_agent": False,
+                    "validate_answer": True
                 }
             ]
         }
@@ -38,6 +42,15 @@ class QueryResponse(BaseModel):
         default=None,
         description="Source documents used for answer"
     )
+    validation: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Answer validation results (multi-agent only)"
+    )
+    agent_workflow: Optional[List[str]] = Field(
+        default=None,
+        description="List of agents used in workflow"
+    )
+    warning: Optional[str] = Field(default=None, description="Warning message if applicable")
     error: Optional[str] = Field(default=None, description="Error message if applicable")
     
     model_config = {
@@ -53,7 +66,8 @@ class QueryResponse(BaseModel):
                             "preview": "RAG is a framework...",
                             "metadata": {"source": "doc1.txt"}
                         }
-                    ]
+                    ],
+                    "agent_workflow": ["retriever", "synthesizer", "validator"]
                 }
             ]
         }

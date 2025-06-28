@@ -5,11 +5,11 @@
 
 set -e
 
-echo "🚀 Setting up AI Knowledge Assistant..."
+echo "Setting up AI Knowledge Assistant..."
 
 # Backend setup
 echo ""
-echo "📦 Setting up Backend..."
+echo "Setting up Backend..."
 cd backend
 
 # Check if virtual environment exists
@@ -37,7 +37,7 @@ cd ..
 
 # Frontend setup
 echo ""
-echo "📦 Setting up Frontend..."
+echo "Setting up Frontend..."
 cd frontend
 
 # Install dependencies
@@ -47,7 +47,7 @@ npm install
 cd ..
 
 echo ""
-echo "✅ Setup complete!"
+echo "Setup complete!"
 echo ""
 echo "Next steps:"
 echo "1. Edit backend/.env and add your GOOGLE_API_KEY"
