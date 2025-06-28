@@ -29,11 +29,10 @@ def main():
     logger.info("=== Starting Embedding Pipeline ===")
     logger.info(f"Data directory: {data_dir}")
     logger.info(f"Vector store path: {vector_store_path}")
+    logger.info(f"Embedding model: {settings.embedding_model}")
+    logger.info(f"Device: {settings.embedding_device}")
     
-    # Check Google API key
-    if not settings.google_api_key:
-        logger.error("GOOGLE_API_KEY not set in environment")
-        sys.exit(1)
+    # Note: HuggingFace embeddings run locally, no API key needed
     
     try:
         # Initialize ETL
@@ -56,10 +55,10 @@ def main():
         logger.info(f"Processed {len(documents)} document chunks")
         
         # Initialize embedding manager
-        logger.info("Initializing embedding manager...")
+        logger.info("Initializing embedding manager (downloading model if needed)...")
         embedding_manager = EmbeddingManager(
-            google_api_key=settings.google_api_key,
             embedding_model=settings.embedding_model,
+            embedding_device=settings.embedding_device,
             vector_store_path=vector_store_path
         )
         

@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, status
 from models import QueryRequest, QueryResponse, ErrorResponse
 from rag_chain import rag_chain
-from agents import multi_agent_orchestrator
+from agents import get_multi_agent_orchestrator
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,8 +42,11 @@ async def query(request: QueryRequest) -> QueryResponse:
     try:
         # Use multi-agent workflow if requested
         if request.use_multi_agent:
+            # Get multi-agent orchestrator
+            orchestrator = get_multi_agent_orchestrator()
+            
             # Check if multi-agent orchestrator is ready
-            if not multi_agent_orchestrator.is_ready():
+            if not orchestrator.is_ready():
                 logger.error("Multi-agent orchestrator not initialized")
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -51,7 +54,7 @@ async def query(request: QueryRequest) -> QueryResponse:
                 )
             
             # Process with multi-agent workflow
-            result = multi_agent_orchestrator.process_query(
+            result = orchestrator.process_query(
                 question=request.question,
                 k=request.k,
                 validate=request.validate_answer

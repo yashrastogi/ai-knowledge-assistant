@@ -396,5 +396,15 @@ class MultiAgentOrchestrator:
             }
 
 
-# Global orchestrator instance
-multi_agent_orchestrator = MultiAgentOrchestrator()
+# Global orchestrator instance (initialized lazily)
+_multi_agent_orchestrator = None
+
+def get_multi_agent_orchestrator() -> MultiAgentOrchestrator:
+    """Get or create the global multi-agent orchestrator instance"""
+    global _multi_agent_orchestrator
+    if _multi_agent_orchestrator is None:
+        _multi_agent_orchestrator = MultiAgentOrchestrator()
+    return _multi_agent_orchestrator
+
+# For backward compatibility
+multi_agent_orchestrator = None  # Will be initialized when first accessed

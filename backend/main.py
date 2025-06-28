@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import logging
 from retrieval import retrieval_service
 from rag_chain import rag_chain
-from agents import multi_agent_orchestrator
+from agents import get_multi_agent_orchestrator
 from routes import router as query_router
 
 # Configure logging
@@ -27,7 +27,8 @@ async def lifespan(app: FastAPI):
             # Initialize RAG chain
             rag_chain.initialize()
             # Initialize multi-agent orchestrator
-            multi_agent_orchestrator.initialize()
+            orchestrator = get_multi_agent_orchestrator()
+            orchestrator.initialize()
             logger.info("All services initialized successfully")
         else:
             logger.warning("Retrieval service not ready - run build_embeddings.py first")
@@ -77,13 +78,14 @@ async def health_check():
 @app.get("/status")
 async def status():
     """Status endpoint with system information"""
+    orchestrator = get_multi_agent_orchestrator()
     return {
         "status": "operational",
         "services": {
             "api": "running",
             "vector_store": "ready" if retrieval_service.is_ready() else "not_ready",
             "rag_chain": "ready" if rag_chain.is_ready() else "not_ready",
-            "multi_agent": "ready" if multi_agent_orchestrator.is_ready() else "not_ready"
+            "multi_agent": "ready" if orchestrator.is_ready() else "not_ready"
         }
     }
 

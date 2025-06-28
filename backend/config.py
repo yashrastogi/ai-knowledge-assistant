@@ -9,7 +9,10 @@ class Settings(BaseSettings):
     # Google Gemini Configuration
     google_api_key: str = ""
     gemini_model: str = "gemini-pro"
-    embedding_model: str = "models/embedding-001"
+    
+    # HuggingFace Embeddings (Free - runs locally)
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    embedding_device: str = "cpu"
     
     # Vector Store Configuration
     vector_store_type: str = "faiss"
@@ -30,8 +33,21 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        env_file_encoding = "utf-8"
         case_sensitive = False
 
 
 # Create global settings instance
-settings = Settings()
+# Look for .env file in backend directory
+import os
+from pathlib import Path
+
+# Get the backend directory path
+backend_dir = Path(__file__).parent
+env_path = backend_dir / ".env"
+
+# Load settings, explicitly passing env file path if it exists
+if env_path.exists():
+    settings = Settings(_env_file=str(env_path))
+else:
+    settings = Settings()

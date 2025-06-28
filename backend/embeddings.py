@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 import logging
 import pickle
 from langchain.schema import Document
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.vectorstores.base import VectorStore
 
@@ -16,20 +16,22 @@ class EmbeddingManager:
     
     def __init__(
         self,
-        google_api_key: str,
-        embedding_model: str = "models/embedding-001",
+        embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
+        embedding_device: str = "cpu",
         vector_store_path: Optional[Path] = None
     ):
         """Initialize embedding manager
         
         Args:
-            google_api_key: Google API key
-            embedding_model: Name of embedding model
+            embedding_model: HuggingFace model name
+            embedding_device: Device to run embeddings on (cpu/cuda)
             vector_store_path: Path to save/load vector store
         """
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model=embedding_model,
-            google_api_key=google_api_key
+        logger.info(f"Loading HuggingFace embeddings model: {embedding_model}")
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name=embedding_model,
+            model_kwargs={'device': embedding_device},
+            encode_kwargs={'normalize_embeddings': True}
         )
         self.vector_store_path = vector_store_path
         self.vector_store: Optional[VectorStore] = None
@@ -130,11 +132,20 @@ class EmbeddingManager:
         
         logger.info(f"Loading vector store from {load_path}")
         try:
-            vector_store = FAISS.load_local(
-                str(load_path),
-                self.embeddings,
-                allow_dangerous_deserialization=True
-            )
+            # Try with allow_dangerous_deserialization parameter (newer FAISS versions)
+            try:
+                vector_store = FAISS.load_local(
+                    str(load_path),
+                    self.embeddings,
+                    allow_dangerous_deserialization=True
+                )
+            except TypeError:
+                # Fall back to older API without the parameter
+                vector_store = FAISS.load_local(
+                    str(load_path),
+                    self.embeddings
+                )
+            
             self.vector_store = vector_store
             logger.info("Vector store loaded successfully")
             return vector_store
