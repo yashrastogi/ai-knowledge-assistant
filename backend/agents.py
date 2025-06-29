@@ -474,11 +474,31 @@ class MultiAgentOrchestrator:
         """Check if orchestrator is ready"""
         return self._initialized
     
+    def _should_use_enterprise_api(self, question: str) -> bool:
+        """Determine if enterprise APIs should be queried
+        
+        Args:
+            question: User's question
+            
+        Returns:
+            True if enterprise APIs should be used
+        """
+        # Keywords that suggest operational queries
+        operational_keywords = [
+            'incident', 'outage', 'down', 'issue', 'problem',
+            'server', 'ci', 'configuration', 'change', 'ticket',
+            'status', 'affected', 'impact', 'dependency'
+        ]
+        
+        question_lower = question.lower()
+        return any(keyword in question_lower for keyword in operational_keywords)
+    
     def process_query(
         self,
         question: str,
         k: int = 4,
-        validate: bool = True
+        validate: bool = True,
+        use_enterprise_api: bool = False
     ) -> Dict[str, Any]:
         """Process a query using multi-agent workflow
         
@@ -486,6 +506,7 @@ class MultiAgentOrchestrator:
             question: User's question
             k: Number of documents to retrieve
             validate: Whether to validate the answer
+            use_enterprise_api: Whether to query enterprise APIs (auto-detect if None)
             
         Returns:
             Complete result with answer, sources, and validation
@@ -496,21 +517,42 @@ class MultiAgentOrchestrator:
         logger.info(f"[Orchestrator] Processing query with {k} documents")
         
         try:
-            # Step 1: Retrieval
-            documents = self.retriever.retrieve(question, k=k)
+            # Auto-detect if we should use enterprise API
+            if use_enterprise_api is None:
+                use_enterprise_api = self._should_use_enterprise_api(question)
             
-            if not documents:
+            agent_workflow = []
+            additional_context = None
+            
+            # Step 1: Retrieval from knowledge base
+            documents = self.retriever.retrieve(question, k=k)
+            agent_workflow.append("retriever")
+            
+            # Step 1b: Query enterprise APIs if relevant
+            if use_enterprise_api:
+                enterprise_context = self._query_enterprise_context(question)
+                if enterprise_context:
+                    additional_context = enterprise_context
+                    agent_workflow.append("enterprise_api")
+            
+            if not documents and not additional_context:
                 return {
                     "question": question,
-                    "answer": "No relevant information found in the knowledge base.",
+                    "answer": "No relevant information found in the knowledge base or operational systems.",
                     "source_documents": [],
+                    "enterprise_data": None,
                     "validation": None,
                     "success": True,
-                    "agent_workflow": ["retriever"]
+                    "agent_workflow": agent_workflow
                 }
             
             # Step 2: Synthesis
-            answer = self.synthesizer.synthesize(question, documents)
+            answer = self.synthesizer.synthesize(
+                question, 
+                documents,
+                context=additional_context
+            )
+            agent_workflow.append("synthesizer")
             
             result = {
                 "question": question,
@@ -523,9 +565,10 @@ class MultiAgentOrchestrator:
                     }
                     for doc in documents
                 ],
+                "enterprise_data": additional_context if use_enterprise_api else None,
                 "validation": None,
                 "success": True,
-                "agent_workflow": ["retriever", "synthesizer"]
+                "agent_workflow": agent_workflow
             }
             
             # Step 3: Validation (optional)
@@ -547,11 +590,58 @@ class MultiAgentOrchestrator:
                 "question": question,
                 "answer": f"Error processing query: {str(e)}",
                 "source_documents": [],
+                "enterprise_data": None,
                 "validation": None,
                 "success": False,
                 "error": str(e),
                 "agent_workflow": []
             }
+    
+    def _query_enterprise_context(self, question: str) -> Optional[str]:
+        """Query enterprise APIs for additional context
+        
+        Args:
+            question: User's question
+            
+        Returns:
+            Formatted context from enterprise systems
+        """
+        logger.info(f"[Orchestrator] Querying enterprise APIs for context")
+        
+        context_parts = []
+        question_lower = question.lower()
+        
+        # Query incidents if relevant
+        if any(kw in question_lower for kw in ['incident', 'issue', 'outage', 'down', 'problem']):
+            incidents = self.enterprise_api.query_itsm("get_open_incidents")
+            if incidents.get("success") and incidents.get("data"):
+                formatted = self.enterprise_api.format_for_context(
+                    incidents["data"], "incident"
+                )
+                context_parts.append(f"Open Incidents:\n{formatted}")
+        
+        # Query CIs if relevant
+        if any(kw in question_lower for kw in ['server', 'ci', 'configuration', 'system']):
+            cis = self.enterprise_api.query_cmdb("get_all")
+            if cis.get("success") and cis.get("data"):
+                # Limit to 5 CIs for context
+                ci_data = cis["data"][:5] if isinstance(cis["data"], list) else [cis["data"]]
+                formatted = self.enterprise_api.format_for_context(ci_data, "ci")
+                context_parts.append(f"Configuration Items:\n{formatted}")
+        
+        # Query changes if relevant
+        if any(kw in question_lower for kw in ['change', 'maintenance', 'scheduled']):
+            changes = self.enterprise_api.query_itsm("get_upcoming_changes")
+            if changes.get("success") and changes.get("data"):
+                formatted = self.enterprise_api.format_for_context(
+                    changes["data"], "change"
+                )
+                context_parts.append(f"Upcoming Changes:\n{formatted}")
+        
+        if context_parts:
+            return "\n\n".join(context_parts)
+        
+        return None
 
 
 # Global orchestrator instance (initialized lazily)

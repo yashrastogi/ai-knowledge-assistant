@@ -10,6 +10,7 @@ class QueryRequest(BaseModel):
     return_sources: bool = Field(default=True, description="Whether to return source documents")
     use_multi_agent: bool = Field(default=False, description="Use multi-agent workflow")
     validate_answer: bool = Field(default=True, description="Validate answer quality (multi-agent only)")
+    use_enterprise_api: bool = Field(default=False, description="Query enterprise CMDB/ITSM systems")
     
     model_config = {
         "json_schema_extra": {
@@ -19,7 +20,8 @@ class QueryRequest(BaseModel):
                     "k": 4,
                     "return_sources": True,
                     "use_multi_agent": False,
-                    "validate_answer": True
+                    "validate_answer": True,
+                    "use_enterprise_api": False
                 }
             ]
         }
@@ -41,6 +43,10 @@ class QueryResponse(BaseModel):
     source_documents: Optional[List[SourceDocument]] = Field(
         default=None,
         description="Source documents used for answer"
+    )
+    enterprise_data: Optional[str] = Field(
+        default=None,
+        description="Enterprise CMDB/ITSM data used (if applicable)"
     )
     validation: Optional[Dict[str, Any]] = Field(
         default=None,

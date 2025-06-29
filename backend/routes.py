@@ -57,7 +57,8 @@ async def query(request: QueryRequest) -> QueryResponse:
             result = orchestrator.process_query(
                 question=request.question,
                 k=request.k,
-                validate=request.validate_answer
+                validate=request.validate_answer,
+                use_enterprise_api=request.use_enterprise_api
             )
             
             if not result.get("success"):
@@ -72,6 +73,7 @@ async def query(request: QueryRequest) -> QueryResponse:
                 question=result["question"],
                 success=result["success"],
                 source_documents=result.get("source_documents") if request.return_sources else None,
+                enterprise_data=result.get("enterprise_data"),
                 validation=result.get("validation"),
                 agent_workflow=result.get("agent_workflow"),
                 warning=result.get("warning"),
