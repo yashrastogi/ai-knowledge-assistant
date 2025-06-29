@@ -7,6 +7,7 @@ from retrieval import retrieval_service
 from rag_chain import rag_chain
 from agents import get_multi_agent_orchestrator
 from routes import router as query_router
+from enterprise_routes import router as enterprise_router
 
 # Configure logging
 logging.basicConfig(
@@ -57,6 +58,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(query_router)
+app.include_router(enterprise_router)
 
 
 @app.get("/")

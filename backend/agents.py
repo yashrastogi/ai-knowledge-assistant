@@ -8,6 +8,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.schema import Document
 from retrieval import retrieval_service
 from config import settings
+from enterprise_api import cmdb_service, itsm_service
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +148,162 @@ Answer:"""
         except Exception as e:
             logger.error(f"[{self.name}] Error synthesizing answer: {e}")
             return f"Error synthesizing answer: {str(e)}"
+
+
+class EnterpriseAPIAgent:
+    """Agent specialized in querying enterprise CMDB and ITSM APIs"""
+    
+    def __init__(self):
+        """Initialize enterprise API agent"""
+        self.name = "EnterpriseAPI"
+        self.description = "Queries CMDB and ITSM systems for configuration items, incidents, and changes"
+        self.cmdb = cmdb_service
+        self.itsm = itsm_service
+    
+    def query_cmdb(
+        self,
+        query_type: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """Query CMDB for configuration items
+        
+        Args:
+            query_type: Type of query (get_ci, search_cis, get_dependencies, etc.)
+            **kwargs: Query parameters
+            
+        Returns:
+            Query results
+        """
+        logger.info(f"[{self.name}] CMDB query: {query_type}")
+        
+        try:
+            if query_type == "get_ci":
+                result = self.cmdb.get_ci(kwargs.get("ci_id"))
+            elif query_type == "search_cis":
+                result = self.cmdb.search_cis(**kwargs)
+            elif query_type == "get_dependencies":
+                result = self.cmdb.get_dependencies(kwargs.get("ci_id"))
+            elif query_type == "get_dependents":
+                result = self.cmdb.get_dependents(kwargs.get("ci_id"))
+            elif query_type == "get_impact_analysis":
+                result = self.cmdb.get_impact_analysis(kwargs.get("ci_id"))
+            elif query_type == "get_all":
+                result = self.cmdb.get_all_cis()
+            else:
+                result = {"error": f"Unknown query type: {query_type}"}
+            
+            logger.info(f"[{self.name}] CMDB query returned results")
+            return {"success": True, "data": result}
+            
+        except Exception as e:
+            logger.error(f"[{self.name}] CMDB query error: {str(e)}")
+            return {"success": False, "error": str(e)}
+    
+    def query_itsm(
+        self,
+        query_type: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """Query ITSM for incidents and changes
+        
+        Args:
+            query_type: Type of query (get_incident, search_incidents, etc.)
+            **kwargs: Query parameters
+            
+        Returns:
+            Query results
+        """
+        logger.info(f"[{self.name}] ITSM query: {query_type}")
+        
+        try:
+            if query_type == "get_incident":
+                result = self.itsm.get_incident(kwargs.get("incident_id"))
+            elif query_type == "search_incidents":
+                result = self.itsm.search_incidents(**kwargs)
+            elif query_type == "get_open_incidents":
+                result = self.itsm.get_open_incidents()
+            elif query_type == "get_change":
+                result = self.itsm.get_change(kwargs.get("change_id"))
+            elif query_type == "search_changes":
+                result = self.itsm.search_changes(**kwargs)
+            elif query_type == "get_upcoming_changes":
+                result = self.itsm.get_upcoming_changes()
+            elif query_type == "get_incidents_for_ci":
+                result = self.itsm.get_incidents_for_ci(kwargs.get("ci_id"))
+            elif query_type == "get_changes_for_ci":
+                result = self.itsm.get_changes_for_ci(kwargs.get("ci_id"))
+            else:
+                result = {"error": f"Unknown query type: {query_type}"}
+            
+            logger.info(f"[{self.name}] ITSM query returned results")
+            return {"success": True, "data": result}
+            
+        except Exception as e:
+            logger.error(f"[{self.name}] ITSM query error: {str(e)}")
+            return {"success": False, "error": str(e)}
+    
+    def format_for_context(self, data: Any, data_type: str) -> str:
+        """Format API results for use as context in synthesis
+        
+        Args:
+            data: API response data
+            data_type: Type of data (ci, incident, change, etc.)
+            
+        Returns:
+            Formatted string for context
+        """
+        if not data:
+            return "No data found."
+        
+        if isinstance(data, list):
+            if len(data) == 0:
+                return "No results found."
+            return "\n\n".join([self._format_single_item(item, data_type) for item in data])
+        else:
+            return self._format_single_item(data, data_type)
+    
+    def _format_single_item(self, item: Dict[str, Any], data_type: str) -> str:
+        """Format a single item for context
+        
+        Args:
+            item: Data item
+            data_type: Type of data
+            
+        Returns:
+            Formatted string
+        """
+        if data_type == "ci":
+            return (
+                f"Configuration Item: {item.get('name', 'Unknown')}\n"
+                f"  ID: {item.get('ci_id')}\n"
+                f"  Type: {item.get('ci_type')}\n"
+                f"  Status: {item.get('status')}\n"
+                f"  Environment: {item.get('environment')}\n"
+                f"  Owner: {item.get('owner')}\n"
+                f"  Location: {item.get('location', 'N/A')}"
+            )
+        elif data_type == "incident":
+            return (
+                f"Incident: {item.get('title', 'Unknown')}\n"
+                f"  ID: {item.get('incident_id')}\n"
+                f"  Priority: {item.get('priority')}\n"
+                f"  Status: {item.get('status')}\n"
+                f"  Affected CI: {item.get('affected_ci')}\n"
+                f"  Assigned To: {item.get('assigned_to')}\n"
+                f"  Description: {item.get('description', 'N/A')}"
+            )
+        elif data_type == "change":
+            return (
+                f"Change Request: {item.get('title', 'Unknown')}\n"
+                f"  ID: {item.get('change_id')}\n"
+                f"  Type: {item.get('type')}\n"
+                f"  Status: {item.get('status')}\n"
+                f"  Priority: {item.get('priority')}\n"
+                f"  Affected CIs: {', '.join(item.get('affected_cis', []))}\n"
+                f"  Scheduled: {item.get('scheduled_start', 'N/A')}"
+            )
+        else:
+            return str(item)
 
 
 class ValidatorAgent:
@@ -296,6 +453,7 @@ class MultiAgentOrchestrator:
         self.retriever = RetrieverAgent()
         self.synthesizer = SynthesizerAgent()
         self.validator = ValidatorAgent()
+        self.enterprise_api = EnterpriseAPIAgent()
         self._initialized = False
     
     def initialize(self) -> None:
