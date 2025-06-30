@@ -139,8 +139,12 @@
 
 .message-text {
   color: #2d3748;
-  line-height: 1.6;
+  line-height: 1.0;
   white-space: pre-wrap;
+}
+
+.message-text p {
+    margin: 0.0em;
 }
 
 .message-time {

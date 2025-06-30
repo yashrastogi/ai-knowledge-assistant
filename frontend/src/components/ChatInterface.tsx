@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { Send, Bot, User, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { apiService, QueryResponse } from '../services/api';
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import 'katex/dist/katex.min.css';
 import './ChatInterface.css';
 
 interface Message {
@@ -125,7 +129,14 @@ export function ChatInterface() {
               {message.type === 'user' ? <User size={20} /> : <Bot size={20} />}
             </div>
             <div className="message-content">
-              <div className="message-text">{message.content}</div>
+              <div className="message-text">
+                <ReactMarkdown
+                    remarkPlugins={[remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                >
+                {message.content}
+                </ReactMarkdown>
+              </div>
 
               {message.response && (
                 <div className="message-metadata">
