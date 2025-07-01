@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AI Knowledge Assistant",
     description="RAG-powered Q&A system with multi-agent workflow",
-    version="0.3.0",
+    version="0.6.0",
     lifespan=lifespan
 )
 
@@ -66,7 +66,7 @@ async def root():
     """Root endpoint"""
     return {
         "message": "AI Knowledge Assistant API",
-        "version": "0.1.0",
+        "version": "0.6.0",
         "status": "running"
     }
 

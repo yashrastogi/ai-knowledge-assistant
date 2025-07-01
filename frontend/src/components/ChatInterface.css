@@ -51,6 +51,10 @@
   background: #f7fafc;
 }
 
+.chat-messages p, ul, ol {
+  margin: 0;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
