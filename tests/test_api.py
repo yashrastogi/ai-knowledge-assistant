@@ -20,7 +20,7 @@ def test_root():
     assert response.status_code == 200
     data = response.json()
     assert data["message"] == "AI Knowledge Assistant API"
-    assert data["version"] == "0.2.0"
+    assert data["version"] == "0.6.0"
 
 
 def test_health_check():

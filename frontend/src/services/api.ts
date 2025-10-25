@@ -16,7 +16,7 @@ export interface QueryRequest {
 export interface SourceDocument {
   content: string;
   preview: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface ValidationScores {

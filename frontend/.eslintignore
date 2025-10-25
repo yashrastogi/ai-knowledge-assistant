@@ -1,0 +1,9 @@
+dist
+node_modules
+*.config.js
+*.config.ts
+coverage
+.env
+.env.local
+.env.production
+build

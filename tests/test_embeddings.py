@@ -61,9 +61,6 @@ def test_create_vector_store(sample_documents):
         google_api_key=api_key,
         embedding_model="models/embedding-001"
     )
-        google_api_key=api_key,
-        embedding_model="models/embedding-001"
-    )
     
     # Create vector store
     vector_store = manager.create_vector_store(sample_documents)
