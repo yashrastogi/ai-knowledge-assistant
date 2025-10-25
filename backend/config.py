@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     log_level: str = "info"
     
     # CORS Configuration
-    cors_origins: str = "http://localhost:3000,http://localhost:5173"
+    cors_origins: str = "http://localhost:3000,http://localhost:5173,http://localhost"
     
     # Agent Configuration
     max_iterations: int = 5
