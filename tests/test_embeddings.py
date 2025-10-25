@@ -11,13 +11,6 @@ from embeddings import EmbeddingManager, HybridSearch
 from langchain.schema import Document
 
 
-# Skip tests if Google API key not available
-pytestmark = pytest.mark.skipif(
-    not os.getenv("GOOGLE_API_KEY"),
-    reason="GOOGLE_API_KEY not set"
-)
-
-
 @pytest.fixture
 def sample_documents():
     """Fixture for sample documents"""
@@ -42,10 +35,9 @@ def sample_documents():
 
 def test_embedding_manager_initialization():
     """Test EmbeddingManager initialization"""
-    api_key = os.getenv("GOOGLE_API_KEY", "test-key")
     manager = EmbeddingManager(
-        google_api_key=api_key,
-        embedding_model="models/embedding-001"
+        embedding_model="Qwen/Qwen3-Embedding-0.6B",
+        embedding_device="cpu"
     )
     assert manager.embeddings is not None
     assert manager.vector_store is None
@@ -53,13 +45,9 @@ def test_embedding_manager_initialization():
 
 def test_create_vector_store(sample_documents):
     """Test creating vector store from documents"""
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        pytest.skip("GOOGLE_API_KEY not set")
-    
     manager = EmbeddingManager(
-        google_api_key=api_key,
-        embedding_model="models/embedding-001"
+        embedding_model="Qwen/Qwen3-Embedding-0.6B",
+        embedding_device="cpu"
     )
     
     # Create vector store
@@ -71,13 +59,9 @@ def test_create_vector_store(sample_documents):
 
 def test_similarity_search(sample_documents):
     """Test similarity search"""
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        pytest.skip("GOOGLE_API_KEY not set")
-    
     manager = EmbeddingManager(
-        google_api_key=api_key,
-        embedding_model="models/embedding-001"
+        embedding_model="Qwen/Qwen3-Embedding-0.6B",
+        embedding_device="cpu"
     )
     
     # Create vector store
@@ -95,13 +79,9 @@ def test_similarity_search(sample_documents):
 
 def test_similarity_search_with_score(sample_documents):
     """Test similarity search with scores"""
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        pytest.skip("GOOGLE_API_KEY not set")
-    
     manager = EmbeddingManager(
-        google_api_key=api_key,
-        embedding_model="models/embedding-001"
+        embedding_model="Qwen/Qwen3-Embedding-0.6B",
+        embedding_device="cpu"
     )
     
     # Create vector store
@@ -116,21 +96,19 @@ def test_similarity_search_with_score(sample_documents):
     # Check result format
     doc, score = results[0]
     assert isinstance(doc, Document)
-    assert isinstance(score, float)
+    # Score can be numpy.float32 from FAISS, so check it's numeric
+    assert isinstance(score, (float, int)) or hasattr(score, '__float__')
+    assert float(score) >= 0  # Score should be a non-negative number
 
 
 def test_save_and_load_vector_store(sample_documents, tmp_path):
     """Test saving and loading vector store"""
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        pytest.skip("GOOGLE_API_KEY not set")
-    
     store_path = tmp_path / "vector_store"
     
     # Create and save
     manager1 = EmbeddingManager(
-        google_api_key=api_key,
-        embedding_model="models/embedding-001",
+        embedding_model="Qwen/Qwen3-Embedding-0.6B",
+        embedding_device="cpu",
         vector_store_path=store_path
     )
     manager1.create_vector_store(sample_documents)
@@ -141,8 +119,8 @@ def test_save_and_load_vector_store(sample_documents, tmp_path):
     
     # Load in new manager
     manager2 = EmbeddingManager(
-        google_api_key=api_key,
-        embedding_model="models/embedding-001",
+        embedding_model="Qwen/Qwen3-Embedding-0.6B",
+        embedding_device="cpu",
         vector_store_path=store_path
     )
     manager2.load_vector_store()
@@ -154,13 +132,9 @@ def test_save_and_load_vector_store(sample_documents, tmp_path):
 
 def test_add_documents(sample_documents):
     """Test adding documents to existing vector store"""
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        pytest.skip("GOOGLE_API_KEY not set")
-    
     manager = EmbeddingManager(
-        google_api_key=api_key,
-        embedding_model="models/embedding-001"
+        embedding_model="Qwen/Qwen3-Embedding-0.6B",
+        embedding_device="cpu"
     )
     
     # Create initial vector store

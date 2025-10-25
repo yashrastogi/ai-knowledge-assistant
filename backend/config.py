@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     google_api_key: str = ""
     gemini_model: str = "gemini-pro"
     
-    # HuggingFace Embeddings (Free - runs locally)
-    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    # HuggingFace Embeddings
+    embedding_model: str = "Qwen/Qwen3-Embedding-0.6B"
     embedding_device: str = "cpu"
     
     # Vector Store Configuration

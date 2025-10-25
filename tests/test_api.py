@@ -31,6 +31,10 @@ def test_health_check():
     assert data["status"] == "healthy"
 
 
+@pytest.mark.skipif(
+    not os.getenv("GOOGLE_API_KEY"),
+    reason="GOOGLE_API_KEY not set"
+)
 def test_status():
     """Test status endpoint"""
     response = client.get("/status")
@@ -84,6 +88,10 @@ def test_query_endpoint_invalid_request():
     assert response.status_code == 422  # Validation error
 
 
+@pytest.mark.skipif(
+    not os.getenv("GOOGLE_API_KEY"),
+    reason="GOOGLE_API_KEY not set"
+)
 def test_query_endpoint_without_sources():
     """Test query endpoint without source documents"""
     response = client.post(

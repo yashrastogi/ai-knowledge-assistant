@@ -16,7 +16,7 @@ class EmbeddingManager:
     
     def __init__(
         self,
-        embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
+        embedding_model: str = "Qwen/Qwen3-Embedding-0.6B",
         embedding_device: str = "cpu",
         vector_store_path: Optional[Path] = None
     ):

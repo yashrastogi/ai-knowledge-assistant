@@ -72,7 +72,12 @@ def test_retriever_agent_with_scores(initialized_services):
     if results:
         doc, score = results[0]
         assert isinstance(doc, Document)
-        assert isinstance(score, float)
+        # Score can be numpy.float32 from FAISS, so check it's numeric
+        assert isinstance(score, (float, int)) or hasattr(score, '__float__')
+        assert float(score) >= 0  # Score should be a non-negative number
+    else:
+        # If no results, that's acceptable for this test
+        pytest.skip("No documents retrieved - vector store may be empty")
 
 
 def test_synthesizer_agent(sample_documents):

@@ -267,7 +267,7 @@ gcloud run deploy ai-assistant-backend \
 # Required
 GOOGLE_API_KEY=your_production_key_here
 GEMINI_MODEL=gemini-pro
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+EMBEDDING_MODEL=Qwen/Qwen3-Embedding-0.6B
 
 # Server
 SERVER_HOST=0.0.0.0
